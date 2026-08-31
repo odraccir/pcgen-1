@@ -33,7 +33,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.Region;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 
 public class OptionsPathDialogController
@@ -96,6 +98,28 @@ public class OptionsPathDialogController
 				Logging.debugPrint("user data is " + userData);
 				String newDir = ConfigurationSettings.getSettingsDirFromFilePath(userData);
 				model.directoryProperty().setValue(newDir);
+			}
+		});
+
+		clampWindowToRootMinSize();
+	}
+
+	/**
+	 * Applies the FXML root's min size to the Stage, since JavaFX enforces a node's minWidth/minHeight in layout only, not on the window.
+	 */
+	private void clampWindowToRootMinSize()
+	{
+		Region root = (Region) optionsPathDialogScene.getRoot();
+		optionsPathDialogScene.windowProperty().addListener((_, _, window) -> {
+			if (window instanceof Stage stage)
+			{
+				// Measure the decoration allowance in onShown, once the window and scene extents are final (both are NaN beforehand).
+				stage.setOnShown(_ -> {
+					double horizontalDecoration = stage.getWidth() - optionsPathDialogScene.getWidth();
+					double verticalDecoration = stage.getHeight() - optionsPathDialogScene.getHeight();
+					stage.setMinWidth(root.getMinWidth() + horizontalDecoration);
+					stage.setMinHeight(root.getMinHeight() + verticalDecoration);
+				});
 			}
 		});
 	}
